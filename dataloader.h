@@ -30,7 +30,7 @@ PointXYZ readPCD(vector<PointXYZ> &cloud, const string filename, const int heade
         file.getline(Header[i], 1024);
         // cout << Header[i] << endl;
 
-        // FIELDS x y z rgb
+        // FIELDS x y z intensity
         if (i == header_lines - 9)
         {
             string col_t = Header[i];
