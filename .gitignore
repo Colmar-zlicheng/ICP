@@ -1,7 +1,7 @@
 # data
 data
-external
 
 # project
 .vscode
 test.o
+external
