@@ -17,9 +17,10 @@ int main()
     PointXYZ center_after;
     vector<PointXYZ> points_before;
     vector<PointXYZ> points_after;
+    bool Decentroided = true;
     // read points from pcd file and pretreat data
-    center_before = readPCD(points_before, data_before, 11);
-    center_after = readPCD(points_after, data_after, 13);
+    center_before = readPCD(points_before, data_before, 11, Decentroided);
+    center_after = readPCD(points_after, data_after, 13, Decentroided);
 
     // compute running time
     clock_t end_time = clock();

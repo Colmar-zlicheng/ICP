@@ -10,7 +10,7 @@ struct PointXYZ
 };
 
 // Read 3D points in .pcd file
-PointXYZ readPCD(vector<PointXYZ> &cloud, const string filename, const int header_lines)
+PointXYZ readPCD(vector<PointXYZ> &cloud, const string filename, const int header_lines, bool Decentroided)
 {
     ifstream file(filename);
     if (file.bad())
@@ -86,7 +86,6 @@ PointXYZ readPCD(vector<PointXYZ> &cloud, const string filename, const int heade
             // }
             cloud.push_back(p);
         }
-        cout << endl;
     }
     else
     {
@@ -100,13 +99,17 @@ PointXYZ readPCD(vector<PointXYZ> &cloud, const string filename, const int heade
     center.z = center.z / double(Points_num);
 
     // Compute Decentroided Point Clouds
-    for (int i = 0; i < Points_num; i++)
+    if (Decentroided)
     {
-        cloud[i].x -= center.x;
-        cloud[i].y -= center.y;
-        cloud[i].z -= center.z;
+        cout << "Compute Decentroided Point Clouds" << endl;
+        for (int i = 0; i < Points_num; i++)
+        {
+            cloud[i].x -= center.x;
+            cloud[i].y -= center.y;
+            cloud[i].z -= center.z;
+        }
     }
-
+    cout << endl;
     return center;
 }
 
