@@ -76,6 +76,7 @@ PointXYZ readPCD(vector<PointXYZ> &cloud, const string filename, const int heade
         {
             file >> p.x >> p.y >> p.z >> tmp;
             i++;
+            // compute center point(sum)
             center.x += p.x;
             center.y += p.y;
             center.z += p.z;
@@ -87,9 +88,24 @@ PointXYZ readPCD(vector<PointXYZ> &cloud, const string filename, const int heade
         }
         cout << endl;
     }
+    else
+    {
+        cout << "Don't support data_columns_type: " << data_columns_type << " or data_type: " << data_type << endl;
+        exit(1);
+    }
+
+    // compute center point(average)
     center.x = center.x / double(Points_num);
     center.y = center.y / double(Points_num);
     center.z = center.z / double(Points_num);
+
+    // Compute Decentroided Point Clouds
+    for (int i = 0; i < Points_num; i++)
+    {
+        cloud[i].x -= center.x;
+        cloud[i].y -= center.y;
+        cloud[i].z -= center.z;
+    }
 
     return center;
 }
