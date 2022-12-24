@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip> // use setw() in cout
 #include <string>
 #include <time.h>
 #include "dataloader.h"
@@ -22,6 +23,8 @@ int main()
      // read points from pcd file and pretreat data
      center_before = readPCD(points_before, data_before, 11, Decentroided);
      center_after = readPCD(points_after, data_after, 13, Decentroided);
+
+     clock_t mid_time = clock();
 
      // compute H, $ H = \frac{1}{N} \sum(p_i * q_i^T) $ p <- after,q <- before
      // p = points_after, q = points_before
@@ -109,9 +112,12 @@ int main()
      R[2][2] = U[2][0] * V[2][0] + U[2][1] * V[2][1] + U[2][2] * V[2][2];
 
      cout << "R: " << endl;
-     cout << "  " << R[0][0] << " " << R[0][1] << " " << R[0][2] << endl
-          << "  " << R[1][0] << " " << R[1][1] << " " << R[1][2] << endl
-          << "  " << R[2][0] << " " << R[2][1] << " " << R[2][2] << endl;
+     for (int i = 0; i < n; i++)
+     {
+          for (int j = 0; j < n; j++)
+               cout << setw(12) << R[i][j];
+          cout << endl;
+     }
 
      // compute t, $ t = X_u - R * Y_u $ (X=RY+t)
      // X_u = center_after, Y_u = center_before
@@ -121,13 +127,15 @@ int main()
      t[2] = center_after.z - R[2][0] * center_before.x - R[2][1] * center_before.y - R[2][2] * center_before.z;
 
      cout << "t: " << endl;
-     cout << "  " << t[0] << endl
-          << "  " << t[1] << endl
-          << "  " << t[2] << endl;
+     for (int i = 0; i < n; i++)
+          cout << setw(10) << t[i] << endl;
+     cout << endl;
 
      // compute running time
      clock_t end_time = clock();
-     cout << "Running Time: " << static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC << "s" << endl;
+     cout << "Dataloader Running Time: " << static_cast<double>(mid_time - start_time) / CLOCKS_PER_SEC << "s" << endl;
+     cout << "ICP Running Time: " << static_cast<double>(end_time - mid_time) / CLOCKS_PER_SEC << "s" << endl;
+     cout << "Total Running Time: " << static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC << "s" << endl;
 
      return 0;
 }
