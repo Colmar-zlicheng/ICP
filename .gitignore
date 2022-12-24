@@ -5,3 +5,4 @@ data
 .vscode
 test.o
 external
+val.py

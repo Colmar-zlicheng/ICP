@@ -10,7 +10,7 @@ struct PointXYZ
 };
 
 // Read 3D points in .pcd file
-PointXYZ readPCD(vector<PointXYZ> &cloud, const string filename, const int header_lines, bool Decentroided)
+PointXYZ readPCD(vector<PointXYZ> &cloud, const string filename, const int header_lines, bool Decentroided = true)
 {
     ifstream file(filename);
     if (file.bad())
