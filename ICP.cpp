@@ -99,7 +99,7 @@ int main()
 
      // SVD H, $ H = U * \sum * V^T $
      // U: A*A^T feature vector cat, V: A^T*A feature vector ^T cat
-     double AAT[3][3], ATA[3][3];
+     double AAT[3][3] = {0}, ATA[3][3] = {0};
      AAT[0][0] = H[0][0] * H[0][0] + H[0][1] * H[0][1] + H[0][2] * H[0][2];
      AAT[1][0] = H[1][0] * H[0][0] + H[1][1] * H[0][1] + H[1][2] * H[0][2];
      AAT[2][0] = H[2][0] * H[0][0] + H[2][1] * H[0][1] + H[2][2] * H[0][2];
@@ -139,7 +139,7 @@ int main()
      //      << "  " << V[2][0] << " " << V[2][1] << " " << V[2][2] << endl;
 
      // compute R, $ R = U * V^T $
-     double R[3][3];
+     double R[3][3] = {0};
      R[0][0] = U[0][0] * V[0][0] + U[0][1] * V[0][1] + U[0][2] * V[0][2];
      R[1][0] = U[1][0] * V[0][0] + U[1][1] * V[0][1] + U[1][2] * V[0][2];
      R[2][0] = U[2][0] * V[0][0] + U[2][1] * V[0][1] + U[2][2] * V[0][2];
@@ -160,7 +160,7 @@ int main()
 
      // compute t, $ t = X_u - R * Y_u $ (X=RY+t)
      // X_u = center_after, Y_u = center_before
-     double t[3];
+     double t[3] = {0};
      t[0] = center_after.x - R[0][0] * center_before.x - R[0][1] * center_before.y - R[0][2] * center_before.z;
      t[1] = center_after.y - R[1][0] * center_before.x - R[1][1] * center_before.y - R[1][2] * center_before.z;
      t[2] = center_after.z - R[2][0] * center_before.x - R[2][1] * center_before.y - R[2][2] * center_before.z;
