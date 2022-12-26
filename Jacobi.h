@@ -1,4 +1,5 @@
 #include <math.h>
+#include <string.h>
 #include <iostream>
 #include <map>
 using namespace std;
