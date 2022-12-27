@@ -9,9 +9,9 @@ using namespace std;
 PointXYZ transform_matrix(PointXYZ before, double R[3][3], double t[3])
 {
      PointXYZ after;
-     after.x = R[0][0] * before.x + R[0][1] * before.y + R[0][2] * before.z - t[0];
-     after.y = R[1][0] * before.x + R[1][1] * before.y + R[1][2] * before.z - t[1];
-     after.z = R[2][0] * before.x + R[2][1] * before.y + R[2][2] * before.z - t[2];
+     after.x = R[0][0] * before.x + R[0][1] * before.y + R[0][2] * before.z + t[0];
+     after.y = R[1][0] * before.x + R[1][1] * before.y + R[1][2] * before.z + t[1];
+     after.z = R[2][0] * before.x + R[2][1] * before.y + R[2][2] * before.z + t[2];
      return after;
 }
 
@@ -24,12 +24,12 @@ double compute_error(PointXYZ center_before, PointXYZ center_after,
      PointXYZ tmp_before, tmp_after;
      for (int i = 0; i < num_points; i++)
      {
-          tmp_before.x = points_before[i].x - center_before.x;
-          tmp_before.y = points_before[i].y - center_before.y;
-          tmp_before.z = points_before[i].z - center_before.z;
-          tmp_after.x = points_after[i].x - center_after.x;
-          tmp_after.y = points_after[i].y - center_after.y;
-          tmp_after.z = points_after[i].z - center_after.z;
+          tmp_before.x = points_before[i].x + center_before.x;
+          tmp_before.y = points_before[i].y + center_before.y;
+          tmp_before.z = points_before[i].z + center_before.z;
+          tmp_after.x = points_after[i].x + center_after.x;
+          tmp_after.y = points_after[i].y + center_after.y;
+          tmp_after.z = points_after[i].z + center_after.z;
 
           PointXYZ transformed = transform_matrix(tmp_before, R, t);
           e_x += abs(tmp_after.x - transformed.x);
