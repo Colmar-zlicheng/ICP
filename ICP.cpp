@@ -82,6 +82,8 @@ int main()
           H[1][2] += points_after[i].y * points_before[i].z;
           H[2][2] += points_after[i].z * points_before[i].z;
      }
+
+     // whether devide by num_points don't affect the result
      H[0][0] = H[0][0] / double(num_points);
      H[1][0] = H[1][0] / double(num_points);
      H[2][0] = H[2][0] / double(num_points);
