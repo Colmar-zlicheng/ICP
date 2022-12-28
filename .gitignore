@@ -6,4 +6,6 @@ data
 test.o
 external
 val.py
+
+# LateX
 ICP_deduce_SVD.synctex.gz
