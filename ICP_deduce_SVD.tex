@@ -1,0 +1,180 @@
+\documentclass{article}
+\usepackage[left=1 in,top=0.5 in,right=1 in,bottom=1in]{geometry}
+\usepackage{amsmath}
+
+\title{ICP using SVD}
+
+\begin{document}
+\maketitle{}
+\par
+Define points sets:
+\begin{equation}
+    P = \left\{p_1, p_2, \ldots, p_n \right\}, \quad P' = \left\{p'_1, p'_2, \ldots, p'_n \right\}\\
+\end{equation}
+\par
+Points transform:
+\begin{equation}
+\forall i, p_i = Rp'_i + t
+\end{equation}
+\par
+Define error:
+\begin{equation}
+e_i = p_i - (Rp'_i + t)
+\end{equation}
+\begin{equation}
+E = \frac{1}{N}\sum^{N}_{i=1}||p_i - (Rp'_i + t)||^2
+\end{equation}
+\par
+Constructing least squares problems:
+\begin{equation}
+\mathop{\arg\min}\limits_{R,t}\frac{1}{N}\sum^{N}_{i=1}||p_i - (Rp'_i + t)||^2
+\end{equation}
+\par
+Solve for the displacement matrix t:
+\begin{equation}
+\frac{dE}{dt}=\frac{2}{N}\sum^{N}_{i=1}(Rp'_i + t -p_i)=\frac{2}{N}\sum^{N}_{i=1}t+\frac{2}{N}\sum^{N}_{i=1}Rp'_i - \frac{2}{N}\sum^{N}_{i=1}p_i=0
+\end{equation}
+
+\begin{equation}
+t+\frac{1}{N}\sum^{N}_{i=1}Rp'_i - \frac{1}{N}\sum^{N}_{i=1}p_i=0
+\end{equation}
+\par
+Define centroid:
+\begin{equation}
+p = \frac{1}{N}\sum_{i=1}^{N}p_i, \quad p' = \frac{1}{N}\sum_{i=1}^{N}p'_i
+\end{equation}
+\par
+Thus:
+\begin{equation}
+t = p - Rp'
+\end{equation}
+\par
+Substitute back to (4)
+\begin{align}
+E&=\frac{1}{N}\sum^{N}_{i=1}||p_i - Rp'_i -p+Rp'||^2\\
+&=\frac{1}{N}\sum^{N}_{i=1}||p_i - p- R(p'_i -p')||^2
+\end{align}
+\par
+Define decentroided point clouds:
+\begin{equation}
+q_i=p_i-p, \quad q'_i=p'_i-p'
+\end{equation}
+\par
+Thus:
+\begin{gather}
+    E = \frac{1}{N}\sum^{N}_{i=1}||q_i - Rq'_i||^2\\
+    \mathop{\arg\min}\limits_{R}\frac{1}{N}\sum^{N}_{i=1}||q_i - Rq'_i||^2
+\end{gather}
+\par
+Solve for the rotation matrix R:
+\begin{equation}
+||q_i - Rq'_i||^2 = (q_i - Rq'_i)^T(q_i - Rq'_i) = q_i^Tq_i - q_i^TRq'_i - q_i^{\prime T}R^Tq_i + R^Tq'_iRq'_i
+\end{equation}
+\par
+Since:
+\begin{gather}
+    q_i^TRq'_i: (3 \times 1)(3 \times 3)(1 \times 3)=(1 \times 1) \Rightarrow scalar \quad quantity\\
+    q_i^{\prime T}R^Tq_i: (3 \times 1)(3 \times 3)(1 \times 3)=(1 \times 1) \Rightarrow scalar \quad quantity
+\end{gather}
+\par
+Thus:
+\begin{equation}
+    ||q_i - Rq'_i||^2 = q_i^Tq_i - 2q_i^TRq'_i + R^Tq'_iRq'_i
+\end{equation}
+\par
+Substitute back to (13, 14)
+\begin{equation}
+    E = \frac{1}{N}\sum^{N}_{i=1}(q_i^Tq_i - 2q_i^TRq'_i + R^Tq'_iRq'_i)
+\end{equation}
+\begin{align}
+    &\mathop{\arg\min}\limits_{R}\frac{1}{N}\sum^{N}_{i=1}(q_i^Tq_i - 2q_i^TRq'_i + R^Tq'_iRq'_i)\\
+    =&\mathop{\arg\min}\limits_{R}\frac{1}{N}\sum^{N}_{i=1}(- 2q_i^TRq'_i)\\
+    =&\mathop{\arg\max}\limits_{R}\frac{1}{N}\sum^{N}_{i=1}(q_i^TRq'_i)
+\end{align}
+\par
+The trace of a constant is known to be equal to the constant itself, and tr(AB) = tr(BA):
+\begin{align}
+\frac{1}{N}\sum^{N}_{i=1}(q_i^TRq'_i)&=tr(\frac{1}{N}\sum^{N}_{i=1}(q_i^TRq'_i))\\
+&=\frac{1}{N}tr(R\sum^{N}_{i=1}(q'_iq_i^T))
+\end{align}
+\par
+Define:
+\begin{equation}
+    H = \sum^{N}_{i=1}(q_iq_i^{\prime T})\quad or \quad H = \frac{1}{N}\sum^{N}_{i=1}(q_iq_i^{\prime T})
+\end{equation}
+\par
+Substitute back to (22)
+\begin{equation}
+    \mathop{\arg\max}\limits_{R}tr(RH^T)
+\end{equation}
+\par
+SVD:
+\begin{equation}
+    H = U\Sigma V^T
+\end{equation}
+\begin{align}
+\mathop{\arg\max}\limits_{R}tr(R(U\Sigma V^T)^T)&=\mathop{\arg\max}\limits_{R}tr(RV\Sigma U^T)\\
+&=\mathop{\arg\max}\limits_{R}tr(\Sigma U^TRV)
+\end{align}
+\par
+Define:
+\begin{equation}
+M=U^TRV
+\end{equation}
+\par
+Since $R, U^T, V$ are orthogonal matrixs: $M$ is a special orthogonal matrix:
+\begin{equation}
+    \forall i,j, \quad |m_{ij}|<1, \quad  m \in M
+\end{equation}
+
+\begin{equation}
+    \Sigma=
+\begin{pmatrix}
+    \sigma_1 &  & \\
+     & \sigma_2 & \\
+    &  & \sigma_3
+\end{pmatrix}
+,\quad \sigma_1, \sigma_2, \sigma_3 < 1
+\end{equation}
+
+\begin{align}
+    tr(\Sigma M)&=
+\begin{pmatrix}
+    \sigma_1 &  & \\
+     & \sigma_2 & \\
+    &  & \sigma_3
+\end{pmatrix}
+\begin{pmatrix}
+    m_{11} & m_{12} & m_{13} \\
+    m_{21} & m_{22} & m_{23} \\
+    m_{31} & m_{32} & m_{33}
+\end{pmatrix}
+\\
+&=\sum_{i,j}\sigma_im_ij\\
+&\leq \sum_{i,j}\sigma_i
+\end{align}
+
+\par
+Take the equal sign (maximum value) at $m_{ij}=1$,
+since M is a orthogonal matrix:
+\begin{equation}
+    M=
+\begin{pmatrix}
+    1 &  & \\
+     & 1 & \\
+    &  & 1
+\end{pmatrix}
+=I
+\end{equation}
+\par
+Thus:
+\begin{gather}
+    M=U^TRV=I\\
+    R = UV^T\\
+    t= p-Rp'=p-UV^Tp'
+\end{gather}
+% If you use vscode on MacOS, you may need the following lines:
+% \cite{*}
+% \bibliographystyle{IEEEtran}
+% \bibliography{IEEEexample}
+\end{document}
