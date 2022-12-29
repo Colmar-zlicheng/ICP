@@ -51,15 +51,6 @@ int main(int argc, char **argv)
      // get start time
      clock_t start_time = clock();
 
-     // 初始化 MPI
-     MPI_Init(&argc, &argv);
-     int rank, size;
-     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-     MPI_Comm_size(MPI_COMM_WORLD, &size);
-
-     // 时间
-     double start_time_mpi = MPI_Wtime();
-
      string data_before, data_after;
      data_before = "data/points_before.pcd";
      data_after = "data/points_after.pcd"; // 549537 points
@@ -73,6 +64,13 @@ int main(int argc, char **argv)
      center_before = readPCD(points_before, data_before, 11, Decentroided);
      center_after = readPCD(points_after, data_after, 13, Decentroided);
 
+     // 初始化 MPI
+     MPI_Init(&argc, &argv);
+     int rank, size;
+     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+     MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+     // 时间
      clock_t mid_time = clock();
 
      // 分块预处理
@@ -85,20 +83,6 @@ int main(int argc, char **argv)
      // 将点云数据分块分发给所有进程
      vector<PointXYZ> chunk_points_before(points_before.begin() + start, points_before.begin() + end);
      vector<PointXYZ> chunk_points_after(points_after.begin() + start, points_after.begin() + end);
-
-     if (rank == 0)
-     {
-          for (int i = 0; i < size; i++)
-          {
-               MPI_Send(chunk_points_before, chunk_size, MPI_INT, i, 0, MPI_COMM_WORLD); // 这个类型是什么 MPI_PointXYZ？
-               MPI_Send(chunk_points_after, chunk_size, MPI_INT, i, 0, MPI_COMM_WORLD);
-          }
-     }
-     else
-     { // 接收数据
-          MPI_Recv(chunk_points_before, chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-          MPI_Recv(chunk_points_after, chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-     }
 
      // 构造H
      double H[3][3] = {0};
@@ -118,109 +102,119 @@ int main(int argc, char **argv)
           H[2][2] += chunk_points_after[i].z * chunk_points_before[i].z;
      }
 
+     double result[size][3][3] = {0};
      // 进程0对H进行汇总加和
-     MPI_Gather(H, 9, MPI_DOUBLE, H, 9, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+     MPI_Gather(H, 1 * 3 * 3, MPI_DOUBLE, result, 3 * 3, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-     H[0][0] = H[0][0] / double(chunk_size);
-     H[1][0] = H[1][0] / double(chunk_size);
-     H[2][0] = H[2][0] / double(chunk_size);
-     H[0][1] = H[0][1] / double(chunk_size);
-     H[1][1] = H[1][1] / double(chunk_size);
-     H[2][1] = H[2][1] / double(chunk_size);
-     H[0][2] = H[0][2] / double(chunk_size);
-     H[1][2] = H[1][2] / double(chunk_size);
-     H[2][2] = H[2][2] / double(chunk_size);
-
-     double AAT[3][3] = {0}, ATA[3][3] = {0};
-     AAT[0][0] = H[0][0] * H[0][0] + H[0][1] * H[0][1] + H[0][2] * H[0][2];
-     AAT[1][0] = H[1][0] * H[0][0] + H[1][1] * H[0][1] + H[1][2] * H[0][2];
-     AAT[2][0] = H[2][0] * H[0][0] + H[2][1] * H[0][1] + H[2][2] * H[0][2];
-     AAT[0][1] = H[0][0] * H[1][0] + H[0][1] * H[1][1] + H[0][2] * H[1][2];
-     AAT[1][1] = H[1][0] * H[1][0] + H[1][1] * H[1][1] + H[1][2] * H[1][2];
-     AAT[2][1] = H[2][0] * H[1][0] + H[2][1] * H[1][1] + H[2][2] * H[1][2];
-     AAT[0][2] = H[0][0] * H[2][0] + H[0][1] * H[2][1] + H[0][2] * H[2][2];
-     AAT[1][2] = H[1][0] * H[2][0] + H[1][1] * H[2][1] + H[1][2] * H[2][2];
-     AAT[2][2] = H[2][0] * H[2][0] + H[2][1] * H[2][1] + H[2][2] * H[2][2];
-
-     ATA[0][0] = H[0][0] * H[0][0] + H[1][0] * H[1][0] + H[2][0] * H[2][0];
-     ATA[1][0] = H[0][1] * H[0][0] + H[1][1] * H[1][0] + H[2][1] * H[2][0];
-     ATA[2][0] = H[0][2] * H[0][0] + H[1][2] * H[1][0] + H[2][2] * H[2][0];
-     ATA[0][1] = H[0][0] * H[0][1] + H[1][0] * H[1][1] + H[2][0] * H[2][1];
-     ATA[1][1] = H[0][1] * H[0][1] + H[1][1] * H[1][1] + H[2][1] * H[2][1];
-     ATA[2][1] = H[0][2] * H[0][1] + H[1][2] * H[1][1] + H[2][2] * H[2][1];
-     ATA[0][1] = H[0][0] * H[0][2] + H[1][0] * H[1][1] + H[2][0] * H[2][2];
-     ATA[1][1] = H[0][1] * H[0][2] + H[1][1] * H[1][1] + H[2][1] * H[2][2];
-     ATA[2][1] = H[0][2] * H[0][2] + H[1][2] * H[1][1] + H[2][2] * H[2][2];
-
-     int n = 3;
-     double eps = 1e-10;
-     int iter = 1000;
-     double U_eigenvalues[3] = {0};
-     double V_eigenvalues[3] = {0};
-     double U[3][3] = {0}, V[3][3] = {0}; // eigenvectors
-     bool u = Jacobi(&AAT[0][0], n, &U[0][0], U_eigenvalues, eps, iter);
-     bool tt = Jacobi(&ATA[0][0], n, &V[0][0], V_eigenvalues, eps, iter);
-
-     // cout << "U: " << endl;
-     // cout << "  " << U[0][0] << " " << U[0][1] << " " << U[0][2] << endl
-     //      << "  " << U[1][0] << " " << U[1][1] << " " << U[1][2] << endl
-     //      << "  " << U[2][0] << " " << U[2][1] << " " << U[2][2] << endl;
-     // cout << "V: " << endl;
-     // cout << "  " << V[0][0] << " " << V[0][1] << " " << V[0][2] << endl
-     //      << "  " << V[1][0] << " " << V[1][1] << " " << V[1][2] << endl
-     //      << "  " << V[2][0] << " " << V[2][1] << " " << V[2][2] << endl;
-
-     // compute R, $ R = U * V^T $
-     double R[3][3] = {0};
-     R[0][0] = U[0][0] * V[0][0] + U[0][1] * V[0][1] + U[0][2] * V[0][2];
-     R[1][0] = U[1][0] * V[0][0] + U[1][1] * V[0][1] + U[1][2] * V[0][2];
-     R[2][0] = U[2][0] * V[0][0] + U[2][1] * V[0][1] + U[2][2] * V[0][2];
-     R[0][1] = U[0][0] * V[1][0] + U[0][1] * V[1][1] + U[0][2] * V[1][2];
-     R[1][1] = U[1][0] * V[1][0] + U[1][1] * V[1][1] + U[1][2] * V[1][2];
-     R[2][1] = U[2][0] * V[1][0] + U[2][1] * V[1][1] + U[2][2] * V[1][2];
-     R[0][2] = U[0][0] * V[2][0] + U[0][1] * V[2][1] + U[0][2] * V[2][2];
-     R[1][2] = U[1][0] * V[2][0] + U[1][1] * V[2][1] + U[1][2] * V[2][2];
-     R[2][2] = U[2][0] * V[2][0] + U[2][1] * V[2][1] + U[2][2] * V[2][2];
-
-     cout << "R: " << endl;
-     for (int i = 0; i < n; i++)
-     {
-          for (int j = 0; j < n; j++)
-               cout << setw(12) << R[i][j];
-          cout << endl;
-     }
-
-     // compute t, $ t = X_u - R * Y_u $ (X=RY+t)
-     // X_u = center_after, Y_u = center_before
-     double t[3] = {0};
-     t[0] = center_after.x - R[0][0] * center_before.x - R[0][1] * center_before.y - R[0][2] * center_before.z;
-     t[1] = center_after.y - R[1][0] * center_before.x - R[1][1] * center_before.y - R[1][2] * center_before.z;
-     t[2] = center_after.z - R[2][0] * center_before.x - R[2][1] * center_before.y - R[2][2] * center_before.z;
-
-     cout << "t: " << endl;
-     for (int i = 0; i < n; i++)
-          cout << setw(10) << t[i] << endl;
-     cout << endl;
-
-     // compute running time
-     clock_t end_time = clock();
-     cout << "Dataloader Running Time: " << static_cast<double>(mid_time - start_time) / CLOCKS_PER_SEC << "s" << endl;
-     cout << "ICP Running Time: " << static_cast<double>(end_time - mid_time) / CLOCKS_PER_SEC << "s" << endl;
-     cout << "Total Running Time: " << static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC << "s" << endl;
-
-     // 计算并行化花费的时间
-     double end_time_mpi = MPI_Wtime();
-     double elapsed_time = end_time_mpi - start_time_mpi;
      if (rank == 0)
      {
-          cout << "Elapsed time: " << elapsed_time << " seconds" << endl;
-     }
+          for (int i = 1; i < size; i++)
+          {
+               result[0][0][0] += result[i][0][0];
+               result[0][1][0] += result[i][1][0];
+               result[0][2][0] += result[i][2][0];
+               result[0][0][1] += result[i][0][1];
+               result[0][1][1] += result[i][1][1];
+               result[0][2][1] += result[i][2][1];
+               result[0][0][2] += result[i][0][2];
+               result[0][1][2] += result[i][1][2];
+               result[0][2][2] += result[i][2][2];
+          }
+
+          H[0][0] = result[0][0][0] / double(chunk_size);
+          H[1][0] = result[0][1][0] / double(chunk_size);
+          H[2][0] = result[0][2][0] / double(chunk_size);
+          H[0][1] = result[0][0][1] / double(chunk_size);
+          H[1][1] = result[0][1][1] / double(chunk_size);
+          H[2][1] = result[0][2][1] / double(chunk_size);
+          H[0][2] = result[0][0][2] / double(chunk_size);
+          H[1][2] = result[0][1][2] / double(chunk_size);
+          H[2][2] = result[0][2][2] / double(chunk_size);
+
+          double AAT[3][3] = {0}, ATA[3][3] = {0};
+          AAT[0][0] = H[0][0] * H[0][0] + H[0][1] * H[0][1] + H[0][2] * H[0][2];
+          AAT[1][0] = H[1][0] * H[0][0] + H[1][1] * H[0][1] + H[1][2] * H[0][2];
+          AAT[2][0] = H[2][0] * H[0][0] + H[2][1] * H[0][1] + H[2][2] * H[0][2];
+          AAT[0][1] = H[0][0] * H[1][0] + H[0][1] * H[1][1] + H[0][2] * H[1][2];
+          AAT[1][1] = H[1][0] * H[1][0] + H[1][1] * H[1][1] + H[1][2] * H[1][2];
+          AAT[2][1] = H[2][0] * H[1][0] + H[2][1] * H[1][1] + H[2][2] * H[1][2];
+          AAT[0][2] = H[0][0] * H[2][0] + H[0][1] * H[2][1] + H[0][2] * H[2][2];
+          AAT[1][2] = H[1][0] * H[2][0] + H[1][1] * H[2][1] + H[1][2] * H[2][2];
+          AAT[2][2] = H[2][0] * H[2][0] + H[2][1] * H[2][1] + H[2][2] * H[2][2];
+
+          ATA[0][0] = H[0][0] * H[0][0] + H[1][0] * H[1][0] + H[2][0] * H[2][0];
+          ATA[1][0] = H[0][1] * H[0][0] + H[1][1] * H[1][0] + H[2][1] * H[2][0];
+          ATA[2][0] = H[0][2] * H[0][0] + H[1][2] * H[1][0] + H[2][2] * H[2][0];
+          ATA[0][1] = H[0][0] * H[0][1] + H[1][0] * H[1][1] + H[2][0] * H[2][1];
+          ATA[1][1] = H[0][1] * H[0][1] + H[1][1] * H[1][1] + H[2][1] * H[2][1];
+          ATA[2][1] = H[0][2] * H[0][1] + H[1][2] * H[1][1] + H[2][2] * H[2][1];
+          ATA[0][1] = H[0][0] * H[0][2] + H[1][0] * H[1][1] + H[2][0] * H[2][2];
+          ATA[1][1] = H[0][1] * H[0][2] + H[1][1] * H[1][1] + H[2][1] * H[2][2];
+          ATA[2][1] = H[0][2] * H[0][2] + H[1][2] * H[1][1] + H[2][2] * H[2][2];
+
+          int n = 3;
+          double eps = 1e-10;
+          int iter = 1000;
+          double U_eigenvalues[3] = {0};
+          double V_eigenvalues[3] = {0};
+          double U[3][3] = {0}, V[3][3] = {0}; // eigenvectors
+          bool u = Jacobi(&AAT[0][0], n, &U[0][0], U_eigenvalues, eps, iter);
+          bool tt = Jacobi(&ATA[0][0], n, &V[0][0], V_eigenvalues, eps, iter);
+
+          // cout << "U: " << endl;
+          // cout << "  " << U[0][0] << " " << U[0][1] << " " << U[0][2] << endl
+          //      << "  " << U[1][0] << " " << U[1][1] << " " << U[1][2] << endl
+          //      << "  " << U[2][0] << " " << U[2][1] << " " << U[2][2] << endl;
+          // cout << "V: " << endl;
+          // cout << "  " << V[0][0] << " " << V[0][1] << " " << V[0][2] << endl
+          //      << "  " << V[1][0] << " " << V[1][1] << " " << V[1][2] << endl
+          //      << "  " << V[2][0] << " " << V[2][1] << " " << V[2][2] << endl;
+
+          // compute R, $ R = U * V^T $
+          double R[3][3] = {0};
+          R[0][0] = U[0][0] * V[0][0] + U[0][1] * V[0][1] + U[0][2] * V[0][2];
+          R[1][0] = U[1][0] * V[0][0] + U[1][1] * V[0][1] + U[1][2] * V[0][2];
+          R[2][0] = U[2][0] * V[0][0] + U[2][1] * V[0][1] + U[2][2] * V[0][2];
+          R[0][1] = U[0][0] * V[1][0] + U[0][1] * V[1][1] + U[0][2] * V[1][2];
+          R[1][1] = U[1][0] * V[1][0] + U[1][1] * V[1][1] + U[1][2] * V[1][2];
+          R[2][1] = U[2][0] * V[1][0] + U[2][1] * V[1][1] + U[2][2] * V[1][2];
+          R[0][2] = U[0][0] * V[2][0] + U[0][1] * V[2][1] + U[0][2] * V[2][2];
+          R[1][2] = U[1][0] * V[2][0] + U[1][1] * V[2][1] + U[1][2] * V[2][2];
+          R[2][2] = U[2][0] * V[2][0] + U[2][1] * V[2][1] + U[2][2] * V[2][2];
+
+          cout << "R: " << endl;
+          for (int i = 0; i < n; i++)
+          {
+               for (int j = 0; j < n; j++)
+                    cout << setw(12) << R[i][j];
+               cout << endl;
+          }
+
+          // compute t, $ t = X_u - R * Y_u $ (X=RY+t)
+          // X_u = center_after, Y_u = center_before
+          double t[3] = {0};
+          t[0] = center_after.x - R[0][0] * center_before.x - R[0][1] * center_before.y - R[0][2] * center_before.z;
+          t[1] = center_after.y - R[1][0] * center_before.x - R[1][1] * center_before.y - R[1][2] * center_before.z;
+          t[2] = center_after.z - R[2][0] * center_before.x - R[2][1] * center_before.y - R[2][2] * center_before.z;
+
+          cout << "t: " << endl;
+          for (int i = 0; i < n; i++)
+               cout << setw(10) << t[i] << endl;
+          cout << endl;
+
+          // compute running time
+          clock_t end_time = clock();
+          cout << "Dataloader Running Time(MPI): " << static_cast<double>(mid_time - start_time) / CLOCKS_PER_SEC << "s" << endl;
+          cout << "ICP Running Time(MPI): " << static_cast<double>(end_time - mid_time) / CLOCKS_PER_SEC << "s" << endl;
+          cout << "Total Running Time(MPI): " << static_cast<double>(end_time - start_time) / CLOCKS_PER_SEC << "s" << endl;
+
+          // 计算并行化花费的时间
+          double error = compute_error(center_before, center_after, points_before, points_after, R, t);
+
+     } //(进程0结束)
      MPI_Finalize();
 
      // compute error
-     double error = compute_error(center_before, center_after, points_before, points_after, R, t);
 
      return 0;
 }
-// mpicxx -g -Wall -o test.o ICP_MPI.cpp
-// mpirun -n 5 ./test.o
