@@ -86,18 +86,26 @@ int main(int argc, char **argv)
      vector<PointXYZ> chunk_points_before(points_before.begin() + start, points_before.begin() + end);
      vector<PointXYZ> chunk_points_after(points_after.begin() + start, points_after.begin() + end);
 
-     // 进程0构造H
      if (rank == 0)
      {
-          double H[3][3] = {0};
+          for (int i = 0; i < size; i++)
+          {
+               MPI_Send(chunk_points_before, chunk_size, MPI_INT, i, 0, MPI_COMM_WORLD); // 这个类型是什么 MPI_PointXYZ？
+               MPI_Send(chunk_points_after, chunk_size, MPI_INT, i, 0, MPI_COMM_WORLD);
+          }
+     }
+     else
+     { // 接收数据
+          MPI_Recv(chunk_points_before, chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+          MPI_Recv(chunk_points_after, chunk_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
      }
 
-     // 将H矩阵广播到所有进程
-     MPI_Bcast(H, 9, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+     // 构造H
+     double H[3][3] = {0};
 
      // 分别进行矩阵运算
 
-     for (int i = 0; i < chunk_size;; i++)
+     for (int i = 0; i < chunk_size; i++)
      {
           H[0][0] += chunk_points_after[i].x * chunk_points_before[i].x;
           H[1][0] += chunk_points_after[i].y * chunk_points_before[i].x;
@@ -110,7 +118,7 @@ int main(int argc, char **argv)
           H[2][2] += chunk_points_after[i].z * chunk_points_before[i].z;
      }
 
-     // 进程0对H进行汇总加和（未完成）
+     // 进程0对H进行汇总加和
      MPI_Gather(H, 9, MPI_DOUBLE, H, 9, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
      H[0][0] = H[0][0] / double(chunk_size);
