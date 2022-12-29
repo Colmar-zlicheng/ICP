@@ -33,9 +33,9 @@ double compute_error(PointXYZ center_before, PointXYZ center_after,
           tmp_after.z = points_after[i].z + center_after.z;
 
           PointXYZ transformed = transform_matrix(tmp_before, R, t);
-          e_x += abs(tmp_after.x - transformed.x);
-          e_y += abs(tmp_after.y - transformed.y);
-          e_z += abs(tmp_after.z - transformed.z);
+          e_x += (tmp_after.x - transformed.x);
+          e_y += (tmp_after.y - transformed.y);
+          e_z += (tmp_after.z - transformed.z);
      }
 
      e_x = e_x / (double(num_points) * center_before.x);
