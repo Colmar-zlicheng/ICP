@@ -222,3 +222,5 @@ int main(int argc, char **argv)
 
      return 0;
 }
+// mpicxx -g -Wall -o test.o ICP_MPI.cpp
+// mpirun -n 5 ./test.o
