@@ -68,7 +68,7 @@ Thus:
 \par
 Solve for the rotation matrix R:
 \begin{equation}
-||q_i - Rq'_i||^2 = (q_i - Rq'_i)^T(q_i - Rq'_i) = q_i^Tq_i - q_i^TRq'_i - q_i^{\prime T}R^Tq_i + R^Tq'_iRq'_i
+||q_i - Rq'_i||^2 = (q_i - Rq'_i)^T(q_i - Rq'_i) = q_i^Tq_i - q_i^TRq'_i - q_i^{\prime T}R^Tq_i + q_i^{\prime T}R^TRq'_i
 \end{equation}
 \par
 Since:
@@ -79,15 +79,15 @@ Since:
 \par
 Thus:
 \begin{equation}
-    ||q_i - Rq'_i||^2 = q_i^Tq_i - 2q_i^TRq'_i + R^Tq'_iRq'_i
+    ||q_i - Rq'_i||^2 = q_i^Tq_i - 2q_i^TRq'_i + q_i^{\prime T}q'_i
 \end{equation}
 \par
 Substitute back to (13, 14)
 \begin{equation}
-    E = \frac{1}{N}\sum^{N}_{i=1}(q_i^Tq_i - 2q_i^TRq'_i + R^Tq'_iRq'_i)
+    E = \frac{1}{N}\sum^{N}_{i=1}(q_i^Tq_i - 2q_i^TRq'_i + q_i^{\prime T}q'_i)
 \end{equation}
 \begin{align}
-    &\mathop{\arg\min}\limits_{R}\frac{1}{N}\sum^{N}_{i=1}(q_i^Tq_i - 2q_i^TRq'_i + R^Tq'_iRq'_i)\\
+    &\mathop{\arg\min}\limits_{R}\frac{1}{N}\sum^{N}_{i=1}(q_i^Tq_i - 2q_i^TRq'_i + q_i^{\prime T}q'_i))\\
     =&\mathop{\arg\min}\limits_{R}\frac{1}{N}\sum^{N}_{i=1}(- 2q_i^TRq'_i)\\
     =&\mathop{\arg\max}\limits_{R}\frac{1}{N}\sum^{N}_{i=1}(q_i^TRq'_i)
 \end{align}
@@ -174,7 +174,7 @@ Thus:
     t= p-Rp'=p-UV^Tp'
 \end{gather}
 % If you use vscode on MacOS, you may need the following lines:
-% \cite{*}
-% \bibliographystyle{IEEEtran}
-% \bibliography{IEEEexample}
+\cite{*}
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEexample}
 \end{document}
