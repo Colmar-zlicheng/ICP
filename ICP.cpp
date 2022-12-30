@@ -19,7 +19,7 @@ double compute_error(PointXYZ center_before, PointXYZ center_after,
                      vector<PointXYZ> points_before, vector<PointXYZ> points_after,
                      double R[3][3], double t[3])
 {
-     double error, e_x = 0, e_y = 0, e_z = 0;
+     double error = 0, e_x = 0, e_y = 0, e_z = 0, error_p = 0, e_x_p = 0, e_y_p = 0, e_z_p = 0;
      int num_points = points_after.size();
      PointXYZ tmp_before, tmp_after;
      for (int i = 0; i < num_points; i++)
@@ -35,13 +35,21 @@ double compute_error(PointXYZ center_before, PointXYZ center_after,
           e_x += (tmp_after.x - transformed.x);
           e_y += (tmp_after.y - transformed.y);
           e_z += (tmp_after.z - transformed.z);
+          e_x_p += abs(tmp_after.x - transformed.x);
+          e_y_p += abs(tmp_after.y - transformed.y);
+          e_z_p += abs(tmp_after.z - transformed.z);
      }
 
-     e_x = e_x / (double(num_points) * center_before.x);
-     e_y = e_y / (double(num_points) * center_before.y);
-     e_z = e_z / (double(num_points) * center_before.z);
+     e_x = e_x / center_before.x;
+     e_y = e_y / center_before.y;
+     e_z = e_z / center_before.z;
+     e_x_p = e_x_p / (double(num_points) * center_before.x);
+     e_y_p = e_y_p / (double(num_points) * center_before.y);
+     e_z_p = e_z_p / (double(num_points) * center_before.z);
      error = (e_x + e_y + e_z) / 3;
-     cout << "Error: " << error * 100 << "%" << endl;
+     error_p = (e_x_p + e_y_p + e_z_p) / 3;
+     cout << "Global Error: " << error * 100 << "%" << endl;
+     cout << "Point average Error: " << error_p * 100 << "%" << endl;
      return error;
 }
 
