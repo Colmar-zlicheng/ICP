@@ -4,7 +4,11 @@ Include:
 - ICP C++ implementation: ICP.cpp
 - ICP C++ parallel compute implementation with MPI: ICP_MPI.cpp
 
-
+### ICP derivation
+```
+./ICP_deduce_SVD.pdf
+./ICP_deduce_SVD.tex
+```
 
 ### data
 ```
