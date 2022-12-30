@@ -68,8 +68,8 @@ int main()
      vector<PointXYZ> points_after;
      bool Decentroided = true; // Compute Decentroided Point Clouds
      // read points from pcd file and pretreat data
-     center_before = readPCD(points_before, data_before, 11, Decentroided);
-     center_after = readPCD(points_after, data_after, 13, Decentroided);
+     center_before = readPCD(points_before, data_before, 11, Decentroided); // 11 is the lines of hearder in pcd, default is 11
+     center_after = readPCD(points_after, data_after, 13, Decentroided);    // this pcd file has 13 lines of hearder
 
      clock_t mid_time = clock();
 
