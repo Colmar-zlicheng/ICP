@@ -1,5 +1,6 @@
 # ICP C++ implementation
 Final project for ME3602-1 @ SJTU
+
 Include:
 - ICP C++ implementation: ICP.cpp
 - ICP C++ parallel compute implementation with MPI: ICP_MPI.cpp
